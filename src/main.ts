@@ -55,9 +55,14 @@ async function setupWebGPU() {
   const vertexShader = device.createShaderModule({
     label: "vertex shader",
     code: `
+    struct VertexInput {
+      @location(0) pos: vec2<f32>,
+      @builtin(instance_index) instance: u32,
+    };
+
       @vertex
-      fn vs_main(@location(0) pos: vec2<f32>) -> @builtin(position) vec4<f32> {
-        var output = vec4<f32>(pos, 0.0, 1.0);
+      fn vs_main(input: VertexInput) -> @builtin(position) vec4<f32> {
+        var output = vec4<f32>(input.pos.x, input.pos.y - f32(input.instance) * 0.7, 0.0, 1.0);
         return output;
       }
 
@@ -105,7 +110,7 @@ async function setupWebGPU() {
   // Draw the square
   renderPass.setPipeline(pipeline);
   renderPass.setVertexBuffer(0, vertexBuffer);
-  renderPass.draw(vertices.length / 2);
+  renderPass.draw(vertices.length / 2, 2);
   renderPass.end();
 
   device.queue.submit([encoder.finish()]);
